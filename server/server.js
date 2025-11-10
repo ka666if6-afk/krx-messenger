@@ -16,7 +16,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+      "https://krx-messenger.onrender.com",
+      "http://localhost:3000",
+      "https://krx-messenger-client-6qdh2s0ip-sams-projects-b690f611.vercel.app"
+    ],
     methods: ["GET", "POST"]
   }
 });
