@@ -24,6 +24,35 @@ const io = new Server(server, {
 app.use(cors());
 // Добавь эти строки после: app.use(cors());
 app.use(express.json());
+// Добавь эти строки после: app.use(cors());
+app.use(express.json());
+
+// Root route - для проверки сервера
+app.get('/', (req, res) => {
+  res.json({ 
+    message: '🚀 KRX Messenger Server is running!',
+    version: '1.0.0',
+    endpoints: [
+      '/api/health',
+      '/api/debug-users',
+      '/api/users'
+    ]
+  });
+});
+
+// API routes
+app.get('/api/debug-users', (req, res) => {
+  db.all('SELECT * FROM users', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows || []);
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'KRX Server is running!' });
+});
 
 // API routes
 app.get('/api/debug-users', (req, res) => {
