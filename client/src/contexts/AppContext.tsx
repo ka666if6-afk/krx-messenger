@@ -187,13 +187,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (user) {
       // Create socket with reconnection options so it survives short network glitches
-      const newSocket = io(process.env.NEXT_PUBLIC_API_URL, {
-        transports: ['websocket'],
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        autoConnect: true
+      const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'https://krx-messenger.onrender.com', {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+        timeout: 10000
       });
       
       // Основные события подключения
