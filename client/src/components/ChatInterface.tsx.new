@@ -1,0 +1,53 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useApp } from '../contexts/AppContext';
+import { Chat, Message } from '../types/types';
+import { ChatList } from './ChatList';
+import { UserSearch } from './UserSearch';
+import { CreateGroupModal } from './CreateGroupModal';
+import ProfileModal from './ProfileModal';
+import { UserProfileSidebar } from './UserProfileSidebar';
+import { MessageIcon } from './icons/MessageIcon';
+import { ProfileIcon, ThemeIcon, AttachmentIcon, SendIcon, MicrophoneIcon } from './icons/InterfaceIcons';
+
+export const ChatInterface: React.FC = () => {
+  const { 
+    user, 
+    setUser,
+    socket, 
+    darkMode, 
+    toggleDarkMode,
+    chats,
+    currentChat,
+    setCurrentChat,
+    setChats,
+    messages,
+    setMessages,
+    sendMessage,
+    loadMessages,
+    loadChats,
+    toggleMute,
+    typingUsers } = useApp();
+  
+  const [newMessage, setNewMessage] = useState('');
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<number | null>(null);
+  const [openEmojiPickerFor, setOpenEmojiPickerFor] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const recordingTimerRef = useRef<number | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Simple emoji list for picker
+  const EMOJI_LIST = ['❓','❤️','❓'] as const;

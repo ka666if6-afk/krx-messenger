@@ -1,0 +1,7 @@
+node_modules/
+.serverless/
+.DS_Store
+*.log
+.env
+uploads/
+database/krx.db
