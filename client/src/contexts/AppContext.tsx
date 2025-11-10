@@ -67,7 +67,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // wrapper to keep localStorage in sync
   const setUser = (u: User | null) => {
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
         if (u) localStorage.setItem('krx_user', JSON.stringify(u));
         else localStorage.removeItem('krx_user');
       }
@@ -99,7 +99,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [user]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
+    return typeof window !== 'undefined' && typeof localStorage !== 'undefined' && localStorage.getItem('theme') === 'dark';
   });
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
@@ -117,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     try {
       if (typeof window !== 'undefined') {
-        const raw = localStorage.getItem('krx_sound_enabled');
+        const raw = typeof localStorage !== 'undefined' && localStorage.getItem('krx_sound_enabled');
         return raw ? JSON.parse(raw) : true;
       }
     } catch (e) { }
@@ -187,7 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (user) {
       // Create socket with reconnection options so it survives short network glitches
-      const newSocket = io('http://localhost:5001', {
+      const newSocket = io(process.env.NEXT_PUBLIC_API_URL, {
         transports: ['websocket'],
         reconnection: true,
         reconnectionAttempts: Infinity,
@@ -355,7 +355,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.log('📋 Received chats list:', chatsData.length, 'chats');
         // apply persisted muted flags
         try {
-          const raw = typeof window !== 'undefined' ? localStorage.getItem('krx_muted_chats') : null;
+          const raw = typeof window !== 'undefined' && typeof localStorage !== 'undefined' ? localStorage.getItem('krx_muted_chats') : null;
           const mutedIds: number[] = raw ? JSON.parse(raw) : [];
           const mapped = chatsData.map(c => ({ ...c, muted: mutedIds.includes(c.id) }));
           setChats(mapped);

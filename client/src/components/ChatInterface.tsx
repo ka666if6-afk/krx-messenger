@@ -584,7 +584,7 @@ export const ChatInterface: React.FC = () => {
   }, [isNewChatMenuOpen]);
 
   // Простая коллекция эмодзи для picker'а
-  const EMOJI_LIST = ['�','❤️','�'] as const;
+  const EMOJI_LIST: EmojiType[] = ['👍', '❤️', '😄', '😮', '😢', '👏'];
 
   // Typing debounce
   let typingTimeout: any = null;
