@@ -16,14 +16,17 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://krx-messenger.onrender.com",
-      "http://localhost:3000", 
-      "https://krx-messenger-client-6qdh2s0ip-sams-projects-b690f611.vercel.app"
-    ],
-    methods: ["GET", "POST"]
+    origin: "*", // Разрешаем все домены временно
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
+
+// Также добавь после app.use(cors()):
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 
 app.use(cors());
 // Добавь эти строки после: app.use(cors());
