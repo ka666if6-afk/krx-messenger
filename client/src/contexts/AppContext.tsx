@@ -466,14 +466,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Ask for Notification permission once on client (optional)
-  useEffect(() => {
+  // Проверка состояния разрешений для уведомлений
+  const checkNotificationPermission = () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        try { Notification.requestPermission(); } catch (e) { /* ignore */ }
-      }
+      return Notification.permission === 'granted';
     }
-  }, []);
+    return false;
+  };
 
   // Загрузка чатов через REST API
   const loadChats = async () => {

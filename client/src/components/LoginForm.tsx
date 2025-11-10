@@ -25,6 +25,16 @@ export const LoginForm: React.FC = () => {
       if (response.ok) {
         const user = await response.json();
         setUser(user);
+        
+        // Запрос разрешений на уведомления после успешного входа
+        if ('Notification' in window) {
+          try {
+            const permission = await Notification.requestPermission();
+            console.log('📱 Notification permission:', permission);
+          } catch (error) {
+            console.warn('Failed to request notification permission:', error);
+          }
+        }
       } else {
         const error = await response.json();
         alert(error.error);
