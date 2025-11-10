@@ -189,14 +189,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (user) {
       console.log('🔄 Attempting to connect to socket server:', SOCKET_URL);
       
-      // Create socket with reconnection options
+      // Create socket with enhanced configuration
       const newSocket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ['websocket'],
+        forceNew: true,
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        timeout: 10000
+        timeout: 10000,
+        extraHeaders: {
+          "Access-Control-Allow-Origin": "*"
+        },
+        withCredentials: true,
+        auth: {
+          userId: user.id
+        }
       });
 
       // Socket connection events
