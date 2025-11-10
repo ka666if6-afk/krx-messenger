@@ -14,25 +14,37 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
+// Общий список разрешенных origins
+const allowedOrigins = [
+  "https://krx-messenger.onrender.com",
+  "http://localhost:3000",
+  "https://krx-messenger-client-i3q044dyp-sams-projects-b690f611.vercel.app"
+];
+
+// Настройка CORS для socket.io
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://krx-messenger.onrender.com",
-      "http://localhost:3000",
-      "https://krx-messenger-client-6qdh2s0ip-sams-projects-b690f611.vercel.app"
-    ],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   }
 });
 
-// Также добавь после app.use(cors()):
+// Настройка CORS для Express
 app.use(cors({
-  origin: "*",
-  credentials: true
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log("Blocked origin:", origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
-app.use(cors());
 // Добавь эти строки после: app.use(cors());
 app.use(express.json());
 // Добавь эти строки после: app.use(cors());
@@ -79,6 +91,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'KRX Server is running!' });
 });
 app.use(express.json());
+
+// Обработка ошибок Socket.IO
+io.engine.on("connection_error", (err) => {
+  console.log("❌ Socket.IO connection error:", err);
+});
+
+// Логирование подключений
+io.on('connection', (socket) => {
+  console.log('✅ New client connected:', socket.id);
+  
+  socket.on('disconnect', (reason) => {
+    console.log('🔌 Client disconnected:', socket.id, 'reason:', reason);
+  });
+
+  socket.on('error', (error) => {
+    console.error('❌ Socket error:', error);
+  });
+});
 
 // Создаем папки если нет
 if (!fs.existsSync('uploads/avatars')) {
