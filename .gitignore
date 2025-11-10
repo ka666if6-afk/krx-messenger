@@ -5,3 +5,4 @@ node_modules/
 .env
 uploads/
 database/krx.db
+.vercel
