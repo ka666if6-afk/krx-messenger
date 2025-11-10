@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Chat, Message, EmojiType } from '../types/types';
 import io, { Socket } from 'socket.io-client';
-import { SOCKET_URL } from '../config/api';
+import { SOCKET_URL, API_URL } from '../config/api';
 
 interface AppContextType {
   user: User | null;
@@ -40,7 +40,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshBlockedUsers = async () => {
     if (!user) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/users/blocked?userId=${user.id}`);
+      const response = await fetch(`${API_URL}/api/users/blocked?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch blocked users');
       const data = await response.json();
       setBlockedUsers(new Set(data.blockedUsers));
@@ -54,7 +54,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!user) return false;
     try {
       const response = await fetch(
-        `http://localhost:5001/api/users/block-status/${userId}?checkedById=${user.id}`
+        `${API_URL}/api/users/block-status/${userId}?checkedById=${user.id}`
       );
       if (!response.ok) throw new Error('Failed to check block status');
       const data = await response.json();
@@ -168,7 +168,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // ensure media urls are absolute so audio/img/video load correctly from client
       content: (() => {
         const raw = m.content ?? '';
-        if (typeof raw === 'string' && raw.startsWith('/')) return `http://localhost:5001${raw}`;
+        if (typeof raw === 'string' && raw.startsWith('/')) return `${API_URL}${raw}`;
         return raw;
       })(),
       messageType: m.message_type ?? m.messageType ?? 'text',
@@ -178,7 +178,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       displayName: m.displayName ?? m.display_name ?? '',
       avatarUrl: (() => {
         const a = m.avatarUrl ?? m.avatar_url ?? undefined;
-        if (typeof a === 'string' && a.startsWith('/')) return `http://localhost:5001${a}`;
+        if (typeof a === 'string' && a.startsWith('/')) return `${API_URL}${a}`;
         return a;
       })(),
       reactions: m.reactions ?? []
@@ -187,16 +187,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     if (user) {
-      // Create socket with reconnection options so it survives short network glitches
+      console.log('🔄 Attempting to connect to socket server:', SOCKET_URL);
+      
+      // Create socket with reconnection options
       const newSocket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
         timeout: 10000
       });
-      
-      // Основные события подключения
-      newSocket.emit('user_online', user.id);
-      newSocket.emit('join_chats', user.id);
-      newSocket.emit('get_chats', user.id);
+
+      // Socket connection events
+      newSocket.on('connect', () => {
+        console.log('✅ Socket connected successfully, ID:', newSocket.id);
+        
+        // Send initial events after successful connection
+        newSocket.emit('user_online', user.id);
+        newSocket.emit('join_chats', user.id);
+        newSocket.emit('get_chats', user.id);
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('❌ Socket connection error:', error);
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('🔌 Socket disconnected:', reason);
+      });
+
+      newSocket.io.on('reconnect', (attempt) => {
+        console.log('🔄 Socket reconnected after', attempt, 'attempts');
+      });
+
+      newSocket.io.on('reconnect_error', (error) => {
+        console.error('❌ Socket reconnection error:', error);
+      });
+
+      newSocket.io.on('reconnect_failed', () => {
+        console.error('❌ Socket reconnection failed after 5 attempts');
+      });
       
       // 📩 ПОЛУЧЕНИЕ НОВЫХ СООБЩЕНИЙ В РЕАЛЬНОМ ВРЕМЕНИ
         newSocket.on('receive_message', (rawMsg: any) => {
