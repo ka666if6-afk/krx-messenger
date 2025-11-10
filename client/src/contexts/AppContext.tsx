@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Chat, Message, EmojiType } from '../types/types';
 import io, { Socket } from 'socket.io-client';
+import { SOCKET_URL } from '../config/api';
 
 interface AppContextType {
   user: User | null;
@@ -187,9 +188,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (user) {
       // Create socket with reconnection options so it survives short network glitches
-      const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'https://krx-messenger.onrender.com', {
+      const newSocket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
-        withCredentials: true,
         timeout: 10000
       });
       
